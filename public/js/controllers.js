@@ -42,13 +42,23 @@ function EditPostCtrl($scope, $http, $location, $routeParams) {
 }
 
 function DeletePostCtrl($scope, $http, $location, $routeParams) {
+  var obj= {
+    method: 'DELETE',
+    withCredentials: true,
+    url: '/api/post/' + $routeParams.id
+    // headers:{
+    //   'Accept':'application/json',
+    //   'Content-Type':'application/json; charset=utf-8',
+    //   'Access-Control-Request-Headers': 'X-Requested-With, content-type, accept, origin, withcredentials'
+    // }
+  }
   $http.get('/api/post/' + $routeParams.id).
     success(function(data) {
       $scope.post = data.post;
     });
 
   $scope.deletePost = function () {
-    $http.delete('/api/post/' + $routeParams.id).
+    $http(obj).
       success(function(data) {
         $location.url('/');
       });

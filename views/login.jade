@@ -1,0 +1,7 @@
+extends layout
+
+block body
+  form(method='POST' action='/token')
+    input(type='text' name='email')
+    input(type='text' name='password')
+    button log in
