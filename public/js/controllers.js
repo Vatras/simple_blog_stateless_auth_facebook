@@ -15,6 +15,10 @@ function AddPostCtrl($scope, $http, $location) {
     $http.post('/api/post', $scope.form).
       success(function(data) {
         $location.path('/');
+      }).
+      error(function(data) {
+      $location.url('/');
+      alert("Nie masz uprawnien!")
       });
   };
 }
@@ -37,6 +41,10 @@ function EditPostCtrl($scope, $http, $location, $routeParams) {
     $http.put('/api/post/' + $routeParams.id, $scope.form).
       success(function(data) {
         $location.url('/readPost/' + $routeParams.id);
+      }).
+      error(function(data) {
+      $location.url('/');
+      alert("Nie masz uprawnien!")
       });
   };
 }
@@ -55,12 +63,16 @@ function DeletePostCtrl($scope, $http, $location, $routeParams) {
   $http.get('/api/post/' + $routeParams.id).
     success(function(data) {
       $scope.post = data.post;
-    });
+    })
 
   $scope.deletePost = function () {
     $http(obj).
       success(function(data) {
         $location.url('/');
+      }).
+      error(function(data) {
+      $location.url('/');
+      alert("Nie masz uprawnien!")
       });
   };
 

@@ -1,5 +1,9 @@
 'use strict';
 
+if (window.location.hash && window.location.hash == '#_=_') { //facebook auth big fixing
+  window.location.hash = '';
+}
+
 // Declare app level module which depends on filters, and services
 angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives']).
   config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
@@ -20,10 +24,13 @@ angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives'])
         templateUrl: 'partials/editPost',
         controller: EditPostCtrl
       }).
-      when('/deletePost/:id', {
-        templateUrl: 'partials/deletePost',
-        controller: DeletePostCtrl
-      }).
+    when('/deletePost/:id', {
+      templateUrl: 'partials/deletePost',
+      controller: DeletePostCtrl
+    }).
+    when('/facebook', {
+      redirect: 'partials/facebook.html'
+    }).
       otherwise({
         redirectTo: '/'
       });

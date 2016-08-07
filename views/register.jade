@@ -1,0 +1,11 @@
+extends layout
+
+block body
+  form(method='POST' action='/register')
+    label Email:
+    input(type='text' name='email').registerField
+    label Password:
+    input(type='password' name='password' ).registerField
+    label Repeat password:
+    input(type='password').registerField
+    button register

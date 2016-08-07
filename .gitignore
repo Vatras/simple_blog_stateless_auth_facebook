@@ -1,2 +1,7 @@
 .idea/
 node_modules/
+dockerContainer
+config.js
+auth_config.js
+dockerContainer
+tresc

@@ -5,18 +5,15 @@
 var express = require('express'),
   routes = require('./routes'),
   api = require('./routes/api');
+
+var session = require('cookie-session');//cookie session to achieve stateless server!
 var bodyParser  = require('body-parser');
 var morgan      = require('morgan');
 var mongoose    = require('mongoose');
 var cookieParser = require('cookie-parser')
 var config = require('./config'); // get our config file
-var User   = require('./models/user'); // get our mongoose model
 var auth = require("./auth.js")();
-var jwt = require("jwt-simple");
-var cfg = require("./auth_config.js");
-var users = require("./users.js");
 var app = module.exports = express.createServer();
-
 
 // Configuration
 mongoose.connect(config.database);
@@ -29,15 +26,17 @@ app.configure(function(){
   });
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
-  app.use(cookieParser());
+  app.use(cookieParser(config.secret));
+  app.use(session({secret: "superSecret"}));
   app.use(auth.initialize());
+  app.use(auth.passport.session());
+  //app.use(auth.parseToken);
   app.use(morgan('dev'));
   //app.use(bodyParser);//express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.static(__dirname + '/public'));
   app.use(app.router);
 });
-
 
 app.configure('development', function(){
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
@@ -51,38 +50,29 @@ app.configure('production', function(){
 
 app.get('/', routes.index);
 app.get('/login', routes.login);
+
+app.get('/auth/facebook', auth.authenticateFacebook());
+
+app.get('/auth/facebook/callback',auth.authenticateFacebook());
+
+app.get('/customLogin', auth.authenticateCustom(), routes.index);
 app.get('/partials/:name', routes.partials);
 
 // JSON API
 
 app.get('/api/posts', api.posts);
 
-app.get('/api/post/:id', api.post);
-app.post('/api/post', api.addPost);
-app.put('/api/post/:id', api.editPost);
-app.delete('/api/post/:id', auth.authenticate(), api.deletePost);
+app.get('/api/post/:id',api.post);
+app.post('/api/post', auth.ensureAuthenticated,  api.addPost);
+app.put('/api/post/:id', auth.ensureAuthenticated,api.editPost);
+app.delete('/api/post/:id', auth.ensureAuthenticated, api.deletePost);
 
-app.post("/token", function(req, res) {
-  if (req.body.email && req.body.password) {
-    var email = req.body.email;
-    var password = req.body.password;
-    var user = users.find(function(u) {
-      return u.email === email && u.password === password;
-    });
-    if (user) {
-      var payload = {id: user.id,date: new Date().getTime()};
-      var token = jwt.encode(payload, cfg.jwtSecret)
-      res.cookie('JWT',token, { maxAge: 900000, httpOnly: true });
-      res.json({token: token});
-    } else {
-      res.status(401);
-    }
-  } else {
-    res.status(401);
-  }
-});
+app.post("/token", auth.createToken);
 
-// redirect all others to the index (HTML5 history)
+app.get('/register', routes.register);
+app.get('/error/:id', routes.errorWithReason);
+app.get('/error', routes.error);
+app.post('/register', api.addUser);
 app.get('*', routes.index);
 
 // Start server

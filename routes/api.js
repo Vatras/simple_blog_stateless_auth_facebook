@@ -1,7 +1,7 @@
 //
 
 var Post   = require('../models/post'); // get our mongoose model
-
+var User = require('../models/user');
 var data = {
   "posts": []
 };
@@ -47,7 +47,27 @@ exports.post = function (req, res) {
 };
 
 // POST
+exports.addUser = function (req, res) {
+  User.findOne({'email':req.body.email},function(err,user){
+    if(!user)
+    {
+      var newUser=User({ "email" : req.body.email, "password" : req.body.password});
+      newUser.save(function(err){
+        if (err)
+        {
+         res.redirect("/error")
+        }
 
+        console.log('User created!');
+        res.redirect("/")
+      });
+
+    }
+    else{
+      res.redirect("/error/User already exists")
+    }
+  })
+}
 exports.addPost = function (req, res) {
   //data.posts.push(req.body);
   var newPost=Post({
