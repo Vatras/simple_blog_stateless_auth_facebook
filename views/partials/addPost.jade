@@ -1,6 +1,8 @@
 h2 Write a new post
 label(for='title') Title: 
 input(ng-model='form.title', name='title')
+input(type='hidden' ng-model='form.id', name='id')
+input(type='hidden' ng-model='form.version', name='version')
 p Body:
 textarea(ng-model='form.text', cols='50', rows='15')
 p

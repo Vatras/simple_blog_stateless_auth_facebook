@@ -11,23 +11,82 @@ function IndexCtrl($scope, $http) {
 
 function AddPostCtrl($scope, $http, $location) {
   $scope.form = {};
+  $http.post('/api/addPostId').
+  success(function(data) {
+    $scope.form.id = data.id;
+    $scope.form.version = 0;
+  });
   $scope.submitPost = function () {
-    $http.post('/api/post', $scope.form).
-      success(function(data) {
-        $location.path('/');
-      }).
-      error(function(data) {
-      $location.url('/');
-      alert("Nie masz uprawnien!")
-      });
+    $http.put('/api/post/' + $scope.form.id, $scope.form).
+    success(function(data) {
+      if(data)
+        $location.url('/');
+    }).
+    error(function(data,status) {
+      if(status==409)
+        alert("Ktoś w miedzyczasie podmienił wersje")
+    });
   };
 }
 
-function ReadPostCtrl($scope, $http, $routeParams) {
+
+// function AddCommentCtrl($scope, $http, $routeParams) {
+//   $scope.form = {};
+//   $scope.submitComment = function () {
+//     $http.post('/api/comment/'+ $routeParams.id, $scope.form).
+//     success(function(data) {
+//       $location.path('/');
+//     }).
+//     error(function(data) {
+//       $location.url('/');
+//       alert("Nie masz uprawnien!")
+//     });
+//   };
+// }
+
+function ReadPostCtrl($scope, $http, $location, $routeParams) {
+  $scope.pagination=[];
   $http.get('/api/post/' + $routeParams.id).
     success(function(data) {
       $scope.post = data.post;
+      var commentsNumber=data.post.commentsNumber;
+      var numberOfPages=(commentsNumber%2 == 0) ? parseInt(commentsNumber/2) : parseInt(commentsNumber/2)+1;
+
+      for(var i=0;i<numberOfPages;i++)
+      {
+        $scope.pagination.push(i+1)
+        
+      }
+      // $scope.comments = data.post.comments;
     });
+  $scope.getCommentPage = function (page) {
+    $http.get('/api/comment/' + $routeParams.id+'/'+page).
+    success(function(data) {
+      $scope.post.comments = data.comments;
+
+    })
+  }
+  $scope.form = {};
+  $scope.submitComment = function () {
+    $http.put('/api/comment/'+ $routeParams.id, $scope.form).
+    success(function(data) {
+      $location.path('/');
+    }).
+    error(function(data) {
+      $location.url('/');
+      alert("Nie masz uprawnien!")
+    });
+  };
+  $scope.deleteAllComments = function () {
+    $http.delete('/api/comments/'+ $routeParams.id).
+    success(function(data) {
+      $location.path('/');
+    }).
+    error(function(data) {
+      $location.url('/');
+      alert("Nie masz uprawnien!")
+    });
+  };
 }
 
 function EditPostCtrl($scope, $http, $location, $routeParams) {
@@ -40,11 +99,12 @@ function EditPostCtrl($scope, $http, $location, $routeParams) {
   $scope.editPost = function () {
     $http.put('/api/post/' + $routeParams.id, $scope.form).
       success(function(data) {
+      if(data)
         $location.url('/readPost/' + $routeParams.id);
       }).
-      error(function(data) {
-      $location.url('/');
-      alert("Nie masz uprawnien!")
+      error(function(data,status) {
+      if(status==409)
+        alert("Ktoś w miedzyczasie podmienił wersje")
       });
   };
 }

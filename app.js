@@ -60,8 +60,11 @@ app.get('/partials/:name', routes.partials);
 
 // JSON API
 
+app.put('/api/comment/:id',api.addComment)
+app.get('/api/comment/:id/:page',api.getCommentPage)
+app.delete('/api/comments:id',auth.ensureAuthenticated,api.deleteAllComments)
 app.get('/api/posts', api.posts);
-
+// app.post('/api/addPostId', api.addPostId);
 app.get('/api/post/:id',api.post);
 app.post('/api/post', auth.ensureAuthenticated,  api.addPost);
 app.put('/api/post/:id', auth.ensureAuthenticated,api.editPost);
@@ -77,6 +80,7 @@ app.get('*', routes.index);
 
 // Start server
 
-app.listen(3000, function(){
+app.listen(80, function(){
   console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+  api.deleteDummiesCron();
 });

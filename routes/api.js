@@ -6,9 +6,30 @@ var data = {
   "posts": []
 };
 
+function deleteDummies(){
+  var now = new Date().getTime();
+  Post.remove({'text':"", date: {$lt : now-1440000}}, function(err) {
+      if (err) throw "deleteDummies error"
+  })
+}
+
+exports.deleteDummiesCron = function(){ //runs everyday at 01:00:00 am
+
+  var now = new Date()
+  var next = new Date()
+  next.setHours(1)
+  next.setMinutes(0)
+  next.setSeconds(0)
+  next.setDate(now.getDate()+1)
+  setTimeout(function(){
+    deleteDummies();
+    setInterval(deleteDummies,1440000);
+  },next.getTime())
+
+}
 //cache the data to minimize select queries to db
 function fetchData(){
-  Post.find({},function (err,resp) {
+  Post.find({'text':{$ne : ""}},function (err,resp) {
     tempPosts = resp || [];
     data.posts = [];
     if (tempPosts) {
@@ -16,7 +37,7 @@ function fetchData(){
         data.posts.push({
           id: post._id,
           title: post.title,
-          text: post.text.substr(0, 50) + '...'
+          //text: post.text.substr(0, 50) + '...'
         });
       });
     }
@@ -41,7 +62,10 @@ exports.post = function (req, res) {
       res.json({'post':{
         id: post._id,
         title: post.title,
-        text: post.text.substr(0, 50) + '...'
+        //text: post.text.substr(0, 50) + '...',
+        version: post.version,
+        comments: (post.comments)? post.comments.slice(0,2) : [],
+        commentsNumber: (post.comments)? post.comments.length : 0
       }})
   })
 };
@@ -68,13 +92,30 @@ exports.addUser = function (req, res) {
     }
   })
 }
+
+
+exports.addPostId = function (req, res) {
+  var newPost=Post({"date": new Date().getTime(),
+                    "text": "",
+                    "title": "",
+                    "version": 0})
+
+  newPost.save(function(err,post){
+    res.json({id: post._id})
+    if (err) throw err;
+  })
+}
 exports.addPost = function (req, res) {
   //data.posts.push(req.body);
-  var newPost=Post({
-   "text": req.body.text,
-   "title": req.body.title,
-   "date": new Date().getTime()
-  })
+  req.body.text
+  req.body.title
+
+  // var newPost=Post({
+  //  "text": req.body.text,
+  //  "title": req.body.title,
+  //  "date": new Date().getTime(),
+  //  "version": 1
+  // })
   newPost.save(function(err){
         if (err) throw err;
 
@@ -88,14 +129,16 @@ exports.addPost = function (req, res) {
 
 exports.editPost = function (req, res) {
   var id = req.params.id;
-
-  Post.findOne({_id: id},function (err,post) {
+  var version = req.body.version;
+  Post.findOne({_id: id,
+                'version':version},function (err,post) {
     if(err)
       res.json(false);
-    else
+    else if(post)
     {
       post.text=req.body.text;
       post.title=req.body.title;
+      post.version++;
       post.save(function(err){
 
       if(err)
@@ -103,6 +146,11 @@ exports.editPost = function (req, res) {
       fetchData()
       res.json(true);
       })
+    }
+    else
+    {
+      res.status(409);
+      res.json(false);
     }
   })
 };
@@ -120,3 +168,59 @@ exports.deletePost = function (req, res) {
   })
 
 };
+
+exports.addComment = function (req, res) {
+  var id = req.params.id;
+  var comment = req.body.text;
+  var author = req.body.author;
+  Post.findOne({_id: id},function (err,post) {
+    if(err)
+      res.json(false);
+    else
+    {
+      if(typeof post.comments == "undefined")
+        post.comments=[];
+      post.comments.push({'author':author,'text':comment})
+      post.save(function(err){
+        if(err)
+          res.json(false);
+        fetchData()
+        res.json(true);
+      })
+    }
+  })
+};
+exports.deleteAllComments = function (req, res) {
+  var id = req.params.id;
+
+  Post.findOne({ _id: id }, function(err,post) {
+    if(err)
+      res.json(false);
+    if(!post)
+      res.json(false);
+    post.comments=[];
+    post.save(function(err){
+      if(err)
+        res.json(false);
+      res.json(true);
+    })
+
+  })
+
+};
+
+exports.getCommentPage = function (req, res) {
+  var id = req.params.id;
+  var page = req.params.page;
+  var from =(page-1)*2
+  if (page<1)
+    res.json(false);
+  Post.findOne({_id:id},function (err,post) {
+    if(err || post.comments.length<from)
+      res.json(false);
+    else
+      res.json({
+        comments: (post.comments)? post.comments.slice(from,from+2) : []
+      })
+  })
+  }

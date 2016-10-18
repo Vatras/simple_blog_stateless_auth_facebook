@@ -5,5 +5,10 @@ var Schema = mongoose.Schema;
 module.exports = mongoose.model('Post', new Schema({
     title: String,
     text: String,
-    date: Number
+    date: Number,
+    version: Number,
+    comments: [{
+        author: String,
+        text: String
+    }]
 }));

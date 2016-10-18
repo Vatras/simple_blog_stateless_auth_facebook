@@ -1,3 +1,17 @@
 section
   h3 {{post.title}}
   div {{post.text}}
+  p Komentarze:
+  p Autor:
+  input(ng-model='form.author', name='title')
+  p Treść:
+  textarea(ng-model='form.text', cols='50', rows='5')
+  p
+    button(ng-click='submitComment()') Submit Comment
+  p
+    button(ng-click='deleteAllComments()') Delete All Comments
+  ul
+    li(ng-repeat="comment in post.comments" ng-cloak)
+      p {{comment.author}}
+      div {{comment.text}}
+  button(ng-repeat="x in pagination" ng-click="getCommentPage(x)") {{x}}

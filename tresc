@@ -7,7 +7,8 @@ Elementem składowym zaliczenia jest projekt usługi, obejmujący:
 opis hierarchii zasobów,
 znaczenie poszczególnych operacji protokołu HTTP w odniesieniu do zasobów,
 opis formatów danych używanych do reprezentacji danych wejściowych i wyjściowych dla poszczególnych zasobów.
-Zakres funkcjonalny usługi jest dowolny. Usługa powinna mieć jednak nietrywialny poziom złożoności. Wśród udostępnianych zasobów powinny się znaleźć (co najmniej po 1 sztuce):
+Zakres funkcjonalny usługi jest dowolny. Usługa powinna mieć jednak nietrywialny poziom złożoności. Wśród udostępnianych zasobów powinny się znaleźć
+(co najmniej po 1 sztuce):
 proste zasoby oferujące pełen zakres operacji CRUD,
 zasoby-kolekcje będące reprezentacją zbiorów innych zasobów i stosujące stronicowanie w swoich reprezentacjach,
 zasoby-kontrolery umożliwiające atomowe wykonanie aktualizacji kilku innych zasobów,

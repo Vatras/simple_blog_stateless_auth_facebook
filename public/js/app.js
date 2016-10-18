@@ -28,9 +28,6 @@ angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives'])
       templateUrl: 'partials/deletePost',
       controller: DeletePostCtrl
     }).
-    when('/facebook', {
-      redirect: 'partials/facebook.html'
-    }).
       otherwise({
         redirectTo: '/'
       });
